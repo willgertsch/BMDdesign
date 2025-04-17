@@ -44,7 +44,7 @@
 #'
 #' # c-optimal design for BMD at BMR=0.1
 #' cvec = logistic.bmdgrad(0.1, theta_logistic)
-#' set.seed(1140)
+#' set.seed(308)
 #' logistic_copt = BMDdesign(
 #'   grad_fun = logistic.grad,
 #'   dr_fun = logistic.fun,
@@ -53,9 +53,9 @@
 #'   theta = theta_logistic,
 #'   num_doses = 2,
 #'   max_dose = 50.11872,
-#'   swarm = 30,
-#'   iter = 500,
-#'   alg = 'DE'
+#'   swarm = 20,
+#'   iter = 1000,
+#'   alg = 'HS'
 #' )
 #' logistic_copt$x
 #' logistic_copt$w

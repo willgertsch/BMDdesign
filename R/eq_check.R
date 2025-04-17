@@ -28,7 +28,8 @@ check_eq = function(opt_design) {
     ggplot2::labs(
       x = 'dose',
       y = 'directional derivative'
-    )
+    ) +
+    ggplot2::geom_hline(yintercept = 0, linetype = 'dashed')
 
 
 }
