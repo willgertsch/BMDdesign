@@ -1,8 +1,8 @@
 Package: BMDdesign
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Find Optimal Designs for Benchmark Dose Analysis
 Version: 0.1.0
-Author: Who wrote it
+Author: Will Gertsch
 Maintainer: The package maintainer <yourself@somewhere.net>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
@@ -12,3 +12,4 @@ LazyData: true
 Imports: 
     ggplot2,
     metaheuristicOpt
+RoxygenNote: 7.3.1

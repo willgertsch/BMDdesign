@@ -1,17 +1,123 @@
-BMDdesign = function(grad_fun, dr_fun, bmd_grad = NULL, obj, theta, d0, n0,
-                        N1, num_doses, max_dose, swarm, iter, alg,
-                        ignore_stage1 = F, show_progress = T) {
+#' Find optimal designs for benchmark dose analysis
+#'
+#' @param grad_fun Dose-response gradient function.
+#' @param dr_fun Dose-response function. Used to account for non-constant variance.
+#' @param cvec c vector for finding c-optimal designs.
+#' @param obj Design objective. Can either be "c" or "D".
+#' @param theta Vector of local model parameter values.
+#' @param d0 Doses in prior experiment.
+#' @param n0 Sample size allocations in prior experiment.
+#' @param N1 Sample size allowance for current experiment. Used when finding augmented designs.
+#' @param num_doses Number of doses in the design.
+#' @param max_dose Maximum allowed dose.
+#' @param swarm Swarm size for swarm-based optimization algorithm.
+#' @param iter Maximum number of iterations for optimization algorithm.
+#' @param alg Algorithm from metaheuristicOpt
+#' @param ignore_stage1 If TRUE, finds the locally optimal design.
+#' @param show_progress If TRUE, show progress bar for optimization.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' # find designs for logistic model ###########################################
+#' # parameter estimates obtained using ToxicR on deguelin data from drc package
+#' theta_logistic = c(-1.5627368, 0.1258373)
+#'
+#' # D-optimal design
+#' set.seed(1136)
+#' logistic_Dopt = BMDdesign(
+#'   grad_fun = logistic.grad,
+#'   dr_fun = logistic.fun,
+#'   obj = 'D',
+#'   theta = theta_logistic,
+#'   num_doses = 2,
+#'   max_dose = 50.11872,
+#'   swarm = 20,
+#'   iter = 100,
+#'   alg = 'DE'
+#' )
+#' logistic_Dopt$x
+#' logistic_Dopt$w
+#' check_eq(logistic_Dopt)
+#'
+#' # c-optimal design for BMD at BMR=0.1
+#' cvec = logistic.bmdgrad(0.1, theta_logistic)
+#' set.seed(1140)
+#' logistic_copt = BMDdesign(
+#'   grad_fun = logistic.grad,
+#'   dr_fun = logistic.fun,
+#'   obj = 'c',
+#'   cvec = cvec,
+#'   theta = theta_logistic,
+#'   num_doses = 2,
+#'   max_dose = 50.11872,
+#'   swarm = 30,
+#'   iter = 500,
+#'   alg = 'DE'
+#' )
+#' logistic_copt$x
+#' logistic_copt$w
+#' check_eq(logistic_copt)
+#'
+#' # 3-parameter Weibull model #################################################
+#' # parameter estimates obtained using ToxicR on deguelin data from drc package
+#' theta_weibull = c(-1.145036439, 1.804710767, 0.004269448) # note g is reparameterized
+#'
+#' # D-optimal design
+#' set.seed(1152)
+#' weibull_Dopt = BMDdesign(
+#'   grad_fun = weibull.grad,
+#'   dr_fun = weibull.fun,
+#'   obj = 'D',
+#'   theta = theta_weibull,
+#'   num_doses = 3,
+#'   max_dose = 50.11872,
+#'   swarm = 20,
+#'   iter = 500,
+#'   alg = 'DE'
+#' )
+#' weibull_Dopt$x
+#' weibull_Dopt$w
+#' check_eq(weibull_Dopt)
+#'
+#' # c-optimal design
+#' cvec = weibull.bmdgrad(0.1, theta_weibull)
+#' set.seed(1156)
+#' weibull_copt = BMDdesign(
+#'   grad_fun = weibull.grad,
+#'   dr_fun = weibull.fun,
+#'   obj = 'c',
+#'   cvec = cvec,
+#'   theta = theta_weibull,
+#'   num_doses = 3,
+#'   max_dose = 50.11872,
+#'   swarm = 20,
+#'   iter = 500,
+#'   alg = 'DE'
+#' )
+#' weibull_copt$x
+#' weibull_copt$w
+#' check_eq(weibull_copt)
+BMDdesign = function(grad_fun, dr_fun, cvec = NULL, obj, theta, d0 = NULL, n0 = NULL,
+                        N1=NULL, num_doses, max_dose, swarm, iter, alg,
+                        ignore_stage1 = T, show_progress = T) {
 
-  # compute cvec if finding c-optimal design
 
-  # compute information matrix from initial design
-  F0 = sapply(d0, grad_fun, theta)
-  phat0 = sapply(d0, dr_fun, theta)
-  v0 = 1/(phat0 * (1 - phat0))
-  M0 = n0[1] * F0[, 1] %*% t(F0[, 1]) * v0[1]
-  for (i in 2:length(d0)) {
-    M0 = M0 + n0[i] * F0[, i] %*% t(F0[, i]) * v0[i]
+  if (!ignore_stage1) {
+    # compute information matrix from initial design
+    F0 = sapply(d0, grad_fun, theta)
+    phat0 = sapply(d0, dr_fun, theta)
+    v0 = 1/(phat0 * (1 - phat0))
+    M0 = n0[1] * F0[, 1] %*% t(F0[, 1]) * v0[1]
+    for (i in 2:length(d0)) {
+      M0 = M0 + n0[i] * F0[, i] %*% t(F0[, i]) * v0[i]
+    }
   }
+  else {
+    M0 = 0
+  }
+
 
   # define objective function
   obj_fun = function(vars, ...) {
@@ -47,7 +153,7 @@ BMDdesign = function(grad_fun, dr_fun, bmd_grad = NULL, obj, theta, d0, n0,
         obj_val = suppressWarnings(-log(det(M)))
       }
       else if (obj == 'c') {
-        cvec = bmd_grad(0.1, theta)
+        cvec = cvec
         Minv = solve(M)
         obj_val = t(cvec) %*% Minv %*% cvec
       }
@@ -131,7 +237,7 @@ BMDdesign = function(grad_fun, dr_fun, bmd_grad = NULL, obj, theta, d0, n0,
   else {
 
     if (obj == 'c') {
-      cvec = bmd_grad(0.1, theta)
+      cvec = cvec
       obj_val = t(cvec) %*% solve(M) %*% cvec
     }
     else if (obj == 'D') {

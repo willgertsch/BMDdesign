@@ -97,8 +97,10 @@ loglogistic.bmd = function(r, theta) {
 # Weibull ######################################################################
 # using version found in BMDS
 # P[dose] = g + (1 - g) * (1 - exp(-b * dose^a))
+# g is reparameterized
+# code assumes output from ToxicR fit $parameters
 weibull.fun = function(x, theta) {
-  g = theta[1]
+  g = 1/(1 + exp(-theta[1]))
   a = theta[2]
   b = theta[3]
 
@@ -107,7 +109,7 @@ weibull.fun = function(x, theta) {
 
 weibull.grad = function(x, theta) {
 
-  g = theta[1]
+  g = 1/(1 + exp(-theta[1]))
   a = theta[2]
   b = theta[3]
 
@@ -119,7 +121,7 @@ weibull.grad = function(x, theta) {
 
 weibull.bmdgrad = function(r, theta) {
 
-  g = theta[1]
+  g = 1/(1 + exp(-theta[1]))
   a = theta[2]
   b = theta[3]
 
