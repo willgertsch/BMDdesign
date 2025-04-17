@@ -1,5 +1,30 @@
 # model and gradient functions
 
+# logistic #################################################################
+logistic.fun = function(x, theta) {
+  eta = theta[1] + theta[2] * x
+  return(1/(1+exp(-eta)))
+}
+
+logistic.grad= function(x, theta) {
+
+  eta = theta[1] + theta[2] * x
+  sigma = exp(eta)/(1 + exp(eta))^2
+  grad = sigma * c(1, x)
+  return(grad)
+}
+
+logistic.bmdgrad = function(r, theta) {
+
+  beta0 = theta[1]
+  beta1 = theta[2]
+
+  g1 = (exp(beta0) + 1)*r*(exp(beta0)*(r+1)+r-1)/(beta1*(exp(beta0)*r+r-1)*(exp(beta0)*(r+1)+r))
+  g2 = suppressWarnings(- log(- (exp(beta0)*(exp(beta0)*r+r-1))/(exp(beta0)*(r+1)+r))/beta1^2)
+  return(c(g1, g2))
+
+}
+
 # quantal linear ###############################################################
 qlinear.fun = function(x, theta) {
   g = 1/(1 + exp(-theta[1]))
@@ -69,8 +94,40 @@ loglogistic.bmd = function(r, theta) {
   return(bmd)
 }
 
+# Weibull ######################################################################
+# using version found in BMDS
+# P[dose] = g + (1 - g) * (1 - exp(-b * dose^a))
+weibull.fun = function(x, theta) {
+  g = theta[1]
+  a = theta[2]
+  b = theta[3]
 
+  return(g + (1 - g) * (1 - exp(-b * x^a)))
+}
 
+weibull.grad = function(x, theta) {
+
+  g = theta[1]
+  a = theta[2]
+  b = theta[3]
+
+  g1 = exp(-b * x^a)
+  g2 = -b * (g - 1) * x^a * log(x) * exp(-b * x^a)
+  g3 = (g - 1) * x^a * (-exp(-b * x^a))
+  return(c(g1, g2, g3))
+}
+
+weibull.bmdgrad = function(r, theta) {
+
+  g = theta[1]
+  a = theta[2]
+  b = theta[3]
+
+  g1 = 0
+  g2 = suppressWarnings(- log(-log(1-r)/b)*(-log(1-r)/b)^(1/a) / a^2)
+  g3 = suppressWarnings(- (-log(1-r)/b)^(1/a) / (a*b))
+  return(c(g1, g2, g3))
+}
 
 # dichotomous hill #############################################################
 hill.fun = function(x, theta) {
