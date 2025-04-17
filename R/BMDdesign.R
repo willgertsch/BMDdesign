@@ -39,6 +39,7 @@
 #' )
 #' logistic_Dopt$x
 #' logistic_Dopt$w
+#' plot_design(logistic_Dopt)
 #' check_eq(logistic_Dopt)
 #'
 #' # c-optimal design for BMD at BMR=0.1
@@ -58,6 +59,7 @@
 #' )
 #' logistic_copt$x
 #' logistic_copt$w
+#' plot_design(logistic_copt)
 #' check_eq(logistic_copt)
 #'
 #' # 3-parameter Weibull model #################################################
@@ -79,6 +81,7 @@
 #' )
 #' weibull_Dopt$x
 #' weibull_Dopt$w
+#' plot_design(weibull_Dopt)
 #' check_eq(weibull_Dopt)
 #'
 #' # c-optimal design
@@ -98,6 +101,7 @@
 #' )
 #' weibull_copt$x
 #' weibull_copt$w
+#' plot_design(logistic_copt)
 #' check_eq(weibull_copt)
 BMDdesign = function(grad_fun, dr_fun, cvec = NULL, obj, theta, d0 = NULL, n0 = NULL,
                         N1=NULL, num_doses, max_dose, swarm, iter, alg,
