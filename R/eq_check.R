@@ -17,12 +17,19 @@ check_eq = function(opt_design) {
   dose = seq(.0001, max_dose)
   y = sapply(dose, sens, grad_fun, obj, M0, M1, dr_fun, theta, a, cvec)
 
-  data.frame(
+  plot_dat = data.frame(
     gen_var = y,
     dose = dose
-  ) %>%
-    ggplot2::ggplot(ggplot2::aes(x = dose, y = gen_var)) +
-    ggplot2::geom_line()
+  )
+
+  ggplot2::ggplot(plot_dat, ggplot2::aes(x = dose, y = gen_var)) +
+    ggplot2::geom_line() +
+    ggplot2::theme_bw() +
+    ggplot2::labs(
+      x = 'dose',
+      y = 'directional derivative'
+    )
+
 
 }
 
